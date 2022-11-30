@@ -13,6 +13,7 @@
 // - SPI for driving LCD screen
 module ibex_demo_system #(
   parameter int GpoWidth     = 20,
+  parameter int PwmWidth     = 12,
   parameter     SRAMInitFile = ""
 ) (
   input logic                 clk_sys_i,
@@ -20,6 +21,7 @@ module ibex_demo_system #(
 
   output logic [GpoWidth-1:0] gp_o,
   output logic                uart_tx_o,
+  output logic [PwmWidth-1:0] pwm_o,
   input  logic                spi_rx_i,
   output logic                spi_tx_o,
   output logic                spi_sck_o
@@ -71,6 +73,7 @@ module ibex_demo_system #(
   typedef enum int {
     Ram,
     Gpio,
+    Pwm,
     Uart,
     Timer,
     Spi,
@@ -78,8 +81,8 @@ module ibex_demo_system #(
     DbgDev
   } bus_device_e;
 
-  localparam int NrDevices = DBG ? 7 : 6;
-  localparam int NrHosts = DBG ? 3 : 2;
+  localparam int NrDevices = DBG ? 8 : 7;
+  localparam int NrHosts = DBG ? 2 : 1;
 
   // interrupts
   logic timer_irq;
@@ -131,7 +134,6 @@ module ibex_demo_system #(
   logic        ndmreset_req;
   logic        dm_debug_req;
 
-
   // Device address mapping
   logic [31:0] cfg_device_addr_base [NrDevices];
   logic [31:0] cfg_device_addr_mask [NrDevices];
@@ -140,6 +142,8 @@ module ibex_demo_system #(
   assign cfg_device_addr_mask[Ram]     = MEM_MASK;
   assign cfg_device_addr_base[Gpio]    = GPIO_START;
   assign cfg_device_addr_mask[Gpio]    = GPIO_MASK;
+  assign cfg_device_addr_base[Pwm]     = PWM_START;
+  assign cfg_device_addr_mask[Pwm]     = PWM_MASK;
   assign cfg_device_addr_base[Uart]    = UART_START;
   assign cfg_device_addr_mask[Uart]    = UART_MASK;
   assign cfg_device_addr_base[Timer]   = TIMER_START;
@@ -156,8 +160,9 @@ module ibex_demo_system #(
   end
 
   // Tie-off unused error signals
-  assign device_err[Ram] = 1'b0;
+  assign device_err[Ram]  = 1'b0;
   assign device_err[Gpio] = 1'b0;
+  assign device_err[Pwm]  = 1'b0;
   assign device_err[Uart] = 1'b0;
   assign device_err[Spi] = 1'b0;
   assign device_err[SimCtrl] = 1'b0;
@@ -318,6 +323,25 @@ module ibex_demo_system #(
     .device_rdata_o (device_rdata[Gpio]),
 
     .gp_o
+  );
+
+  pwm_wrapper #(
+    .PwmWidth   ( PwmWidth   ),
+    .PwmCtrSize ( PwmCtrSize ),
+    .BusWidth   ( 32         )
+  ) u_pwm (
+    .clk_i          (clk_sys_i),
+    .rst_ni         (rst_sys_ni),
+
+    .device_req_i   (device_req[Pwm]),
+    .device_addr_i  (device_addr[Pwm]),
+    .device_we_i    (device_we[Pwm]),
+    .device_be_i    (device_be[Pwm]),
+    .device_wdata_i (device_wdata[Pwm]),
+    .device_rvalid_o(device_rvalid[Pwm]),
+    .device_rdata_o (device_rdata[Pwm]),
+
+    .pwm_o
   );
 
   uart #(
