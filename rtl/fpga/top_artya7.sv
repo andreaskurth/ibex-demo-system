@@ -15,6 +15,20 @@ module top_artya7 (
 
   logic clk_sys, rst_sys_n;
 
+  `ifdef VERILATOR
+    assign clk_sys = IO_CLK;
+    assign rst_sys_n = IO_RST_N;
+  `else
+    // Generating the system clock and reset for the FPGA.
+    clkgen_xil7series
+      clkgen(
+        .IO_CLK,
+        .IO_RST_N,
+        .clk_sys,
+        .rst_sys_n
+      );
+  `endif
+
   // Instantiating the Ibex Demo System.
   ibex_demo_system #(
     .GpoWidth(16),
@@ -25,14 +39,6 @@ module top_artya7 (
 
     .gp_o({LED, RGB_LED}),
     .uart_tx_o(UART_TX)
-  );
-
-  // Generating the system clock and reset for the FPGA.
-  clkgen_xil7series clkgen(
-    .IO_CLK,
-    .IO_RST_N,
-    .clk_sys,
-    .rst_sys_n
   );
 
 endmodule
