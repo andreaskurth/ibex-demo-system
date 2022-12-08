@@ -24,38 +24,44 @@ module ibex_demo_system #(
   output logic                spi_tx_o,
   output logic                spi_sck_o
 );
-  localparam logic [31:0] MEM_SIZE     = 64 * 1024; // 64 kB
+  localparam logic [31:0] MEM_SIZE     = 64 * 1024; // 64 KiB
   localparam logic [31:0] MEM_START    = 32'h00100000;
   localparam logic [31:0] MEM_MASK     = ~(MEM_SIZE-1);
 
-  localparam logic [31:0] GPIO_SIZE    = 4 * 1024; // 1kB
+  localparam logic [31:0] GPIO_SIZE    =  4 * 1024; //  4 KiB
   localparam logic [31:0] GPIO_START   = 32'h80000000;
   localparam logic [31:0] GPIO_MASK    = ~(GPIO_SIZE-1);
 
   localparam logic [31:0] DEBUG_START  = 32'h1a110000;
-  localparam logic [31:0] DEBUG_SIZE   = 64 * 1024; // 64 kB
+  localparam logic [31:0] DEBUG_SIZE   = 64 * 1024; // 64 KiB
   localparam logic [31:0] DEBUG_MASK   = ~(DEBUG_SIZE-1);
 
-  localparam logic [31:0] UART_SIZE    = 4 * 1024; // 4kB
+  localparam logic [31:0] UART_SIZE    =  4 * 1024; //  4 KiB
   localparam logic [31:0] UART_START   = 32'h80001000;
   localparam logic [31:0] UART_MASK    = ~(UART_SIZE-1);
 
-  localparam logic [31:0] TIMER_SIZE   = 4 * 1024; // 4kB
+  localparam logic [31:0] TIMER_SIZE   =  4 * 1024; //  4 KiB
   localparam logic [31:0] TIMER_START  = 32'h80002000;
   localparam logic [31:0] TIMER_MASK   = ~(TIMER_SIZE-1);
 
-  localparam logic [31:0] SPI_SIZE    = 1 * 1024; // 1kB
-  localparam logic [31:0] SPI_START   = 32'h80003000;
+  // Pulse width modulator parameters
+  localparam logic [31:0] PWM_SIZE     =  4 * 1024; //  4 KiB
+  localparam logic [31:0] PWM_START    = 32'h80003000;
+  localparam logic [31:0] PWM_MASK     = ~(PWM_SIZE-1);
+  localparam int PwmCtrSize = 8;
+
+  localparam logic [31:0] SPI_SIZE    = 1 * 1024; // 1 KiB
+  localparam logic [31:0] SPI_START   = 32'h80004000;
   localparam logic [31:0] SPI_MASK    = ~(SPI_SIZE-1);
 
-  localparam logic [31:0] SIM_CTRL_SIZE    = 1 * 1024; // 1kB
+  localparam logic [31:0] SIM_CTRL_SIZE    = 1 * 1024; // 1 KiB
   localparam logic [31:0] SIM_CTRL_START   = 32'h20000;
   localparam logic [31:0] SIM_CTRL_MASK    = ~(SIM_CTRL_SIZE-1);
 
   // debug functionality is optional
   localparam bit DBG = 1;
-  localparam int unsigned DbgHwBreakNum = (DBG == 1) ? 2 : 0;
-  localparam bit DbgTriggerEn = (DBG == 1) ? 1'b1 : 1'b0;
+  localparam int unsigned DbgHwBreakNum = (DBG == 1) ?    2 :    0;
+  localparam bit          DbgTriggerEn  = (DBG == 1) ? 1'b1 : 1'b0;
 
   typedef enum int {
     CoreD,
