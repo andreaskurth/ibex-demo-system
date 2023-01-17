@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#include <stdio.h>
+
 #include "demo_system.h"
 #include "timer.h"
 #include "gpio.h"
@@ -85,37 +87,7 @@ int main(void) {
 
   do {
     lcd_st7735_clean(&lcd);
-
-    // Show the main menu.
-    const char * items[] = {"0. Fractal","1. Custom",};
-    Menu_t main_menu = {
-      .title = "Main menu",
-      .color = BGRColorBlue,
-      .selected_color = BGRColorRed,
-      .background = BGRColorWhite,
-      .items_count = sizeof(items)/sizeof(items[0]),
-      .items = items,
-    };
-    lcd_show_menu(&lcd, &main_menu);
-    lcd_st7735_puts(&lcd, (LCD_Point){.x = 5, .y = 106}, "Defaulting to item");
-    lcd_st7735_puts(&lcd, (LCD_Point){.x = 5, .y = 118}, "0 after 3 seconds");
-
-    switch(scan_buttons(3000, BTN0)) {
-      case BTN0:
-        // Run the fractal examples.
-        fractal_test(&lcd);
-        break;
-      case BTN1:
-        lcd_st7735_puts(&lcd, (LCD_Point){.x = 5, .y = 80}, "Button 1 pressed");
-        timer_delay(1000);
-        break;
-      case BTN2:
-        break;
-      case BTN3:
-        break;
-      default:
-        break;
-    }
+    fractal_test(&lcd);
   } while(1);
 }
 
@@ -143,18 +115,19 @@ static Buttons_t scan_buttons(uint32_t timeout, Buttons_t def) {
 
 static void fractal_test(St7735Context *lcd){
     unsigned int compute_cycles;
+    char buf[32];
+
     fractal_mandelbrot_float(lcd, &compute_cycles);
-    puthex(compute_cycles);
-    puts(" cycles with floats\n");
-    timer_delay(5000);
-    fractal_mandelbrot_fixed(lcd, &compute_cycles);
-    puthex(compute_cycles);
-    puts(" cycles with fixed point numbers\n");
-    timer_delay(5000);
-    fractal_mandelbrot_cmplx_insn(lcd, &compute_cycles);
-    puthex(compute_cycles);
-    puts(" cycles with custom complex number instructions\n");
-    timer_delay(5000);
+    snprintf(buf, 32, "cycles: %10d", compute_cycles);
+    lcd_st7735_puts(lcd, (LCD_Point){.x = 5, .y = 112}, buf);
+    timer_delay(3000);
+
+    for (unsigned i = 0; i < 10; i++) {
+        fractal_mandelbrot_cmplx_insn(lcd, &compute_cycles);
+    }
+    snprintf(buf, 32, "cycles: %10d", compute_cycles);
+    lcd_st7735_puts(lcd, (LCD_Point){.x = 5, .y = 112}, buf);
+    timer_delay(3000);
 }
 
 static uint32_t spi_write(void *handle, uint8_t *data, size_t len){
